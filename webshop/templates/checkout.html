@@ -56,7 +56,7 @@
     <button type="submit" class="btn btn-success">Применить промокод</button>
   </form>
 
-<a href="{% if user.is_authenticated %}{% if user.address %}{% url 'checkout-address' 'old' %}
-{% else %}{% url 'checkout-address' 'new' %}{% endif %}{% else %}{% url 'checkout-address' 'new' %}{% endif %}"
+<a href="{% if user.is_authenticated %}{% if user.address.exists %}{% url 'checkout-address-old' %}
+{% else %}{% url 'checkout-address-new' %}{% endif %}{% else %}{% url 'checkout-address-new' %}{% endif %}"
    class="btn btn-primary">Продолжить оформление заказа</a>
 {% endblock %}

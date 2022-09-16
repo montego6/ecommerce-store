@@ -125,7 +125,77 @@ def checkout(request):
             messages.error(request, f"Количество товара {item['name']} было скорректировано")
             return redirect("checkout")
 
-    return render(request, "checkout.html", {"items": items, "total": total, "form":form})
+    return render(request, "checkout.html", {"items": items, "total": total, "form": form})
+
+
+def checkout_save_order(request, form_choices, address):
+    items, total, promo = get_cart(request)
+    order = form_choices.save(commit=False)
+    order.address = address
+    if promo:
+        order.promo = 0.8
+        total *= 0.8
+    order.total = total
+    if request.user.is_authenticated:
+        order.user = request.user
+    order.save()
+    return order
+
+
+def checkout_old_address(request):
+    items, total, promo = get_cart(request)
+    if request.method == "POST":
+        form_address = RegisteredAddressForm(request.POST, user=request.user)
+        if form_address.is_valid():
+            address = form_address.cleaned_data["address"]
+        form_choices = modelform_factory(Order, fields=["delivery", "payment"])(request.POST)
+        order = checkout_save_order(request, form_choices, address)
+        order_manage_items(request, order)
+        request.session["cart"] = {}
+        request.session["promocode"] = False
+        send_confirmation_mail(order)
+        messages.success(request,
+                         f"Заказ #{order.id} успешно создан. Дождитесь звонка оператора для подтверждения заказа")
+        return redirect("orders-confirm")
+
+    else:
+        form_address = RegisteredAddressForm(user=request.user)
+        form_choices = modelform_factory(Order, fields=["delivery", "payment"])
+
+    return render(request, "checkout-address.html", {"items": items, "total": total,
+                                                     "form1": form_address,
+                                                     "form2": form_choices,
+                                                     "address": 'old'})
+
+
+def checkout_new_address(request):
+    items, total, promo = get_cart(request)
+
+    if request.method == "POST":
+        form_address = modelform_factory(Address, exclude=["user"])(request.POST)
+        if form_address.is_valid():
+            address = form_address.save(commit=False)
+            if request.user.is_authenticated:
+                address.user = request.user
+            address.save()
+        form_choices = modelform_factory(Order, fields=["delivery", "payment"])(request.POST)
+        order = checkout_save_order(request, form_choices, address)
+        order_manage_items(request, order)
+        request.session["cart"] = {}
+        request.session["promocode"] = False
+        send_confirmation_mail(order)
+        messages.success(request,
+                         f"Заказ #{order.id} успешно создан. Дождитесь звонка оператора для подтверждения заказа")
+        return redirect("orders-confirm")
+
+    else:
+        form_address = modelform_factory(Address, exclude=["user"])
+        form_choices = modelform_factory(Order, fields=["delivery", "payment"])
+
+    return render(request, "checkout-address.html", {"items": items, "total": total,
+                                                     "form1": form_address,
+                                                     "form2": form_choices,
+                                                     "address": 'new'})
 
 
 def checkout_address(request, address_status):

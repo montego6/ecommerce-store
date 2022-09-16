@@ -56,5 +56,5 @@
     <br>
     <button type="submit" class="btn btn-success">Оформить заказ</button>
   </form>
-{% if address == "old" %}<a href="{% url 'checkout-address' 'new' %}" class="btn btn-primary">Указать другой адрес</a>{% endif %}
+{% if address == "old" %}<a href="{% url 'checkout-address-new' %}" class="btn btn-primary">Указать другой адрес</a>{% endif %}
 {% endblock %}
