@@ -21,7 +21,7 @@ def check_promo(promocode):
 
 def checkout_save_order(request, form_choices, address):
     items, total = get_cart(request)
-    promo = check_promo(request, get_promo(request))
+    promo = check_promo(get_promo(request))
     order = form_choices.save(commit=False)
     order.address = address
     if promo:

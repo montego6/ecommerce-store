@@ -277,20 +277,18 @@ def denied(request):
     return render(request, "denied.html")
 
 
+@user_passes_test(lambda user: user.groups.filter(name="moderators").exists(), login_url=reverse_lazy("denied"))
 def category_modify(request):
     if request.method == "POST":
-        form = modelformset_factory(Category, fields=["name", "slug"])(request.POST)
+        form = modelformset_factory(Category, fields=["name", "slug"], can_delete=True)(request.POST)
         if form.is_valid():
             form.save()
     else:
-        form = modelformset_factory(Category, fields=["name", "slug"])
+        form = modelformset_factory(Category, fields=["name", "slug"], can_delete=True)
     return render(request, "form.html", {"form": form})
 
 
-def admin_panel(request):
-    return render(request, "admin.html")
-
-
+@user_passes_test(lambda user: user.groups.filter(name="moderators").exists(), login_url=reverse_lazy("denied"))
 def add_promo(request):
     if request.method == 'POST':
         form = PromoForm(request.POST)
