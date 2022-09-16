@@ -4,13 +4,14 @@ from django.contrib import messages
 from django.views.generic.edit import UpdateView, DeleteView
 from django.forms import modelform_factory, modelformset_factory
 from .forms import CategoryForm, ItemForm, StatusForm, RegisteredAddressForm, PromocodeForm, OrderAddItemForm, PromoForm
-from .models import Category, Item, Address, Order, OrderItem
+from .models import Category, Item, Address, Order, OrderItem, Promo
 from cart.views import get_cart, get_promo
 from django.contrib.auth.decorators import user_passes_test
 from django.core import mail
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.conf import settings
+from datetime import date
 
 
 # Create your views here.
@@ -103,20 +104,39 @@ def search(request):
     return render(request, "search.html", {"items": items})
 
 
+def check_promo(request, promocode):
+    try:
+        db_promo = Promo.objects.get(name=promocode)
+        if db_promo.expire_date > date.today():
+            request.session['promocode'] = db_promo.name
+            return db_promo
+    except Promo.DoesNotExist:
+        pass
+    return None
+
+
 def checkout(request):
     if request.method == "POST":
         form = PromocodeForm(request.POST)
         if form.is_valid():
             promocode = form.cleaned_data["promocode"]
-            if promocode in PROMO:
-                request.session['promocode'] = True
-            else:
-                request.session['promocode'] = False
-                messages.error(request, "Вы ввели недействительный промокод. Попробуйте еще раз или продолжите без промокода")
+            try:
+                db_promo = Promo.objects.get(name=promocode)
+                if db_promo.expire_date > date.today():
+                    request.session['promocode'] = db_promo.name
+                else:
+                    request.session['promocode'] = None
+                    messages.error(request, "Промокод устарел. Попробуйте другой или продолжите без промокода")
+            except Promo.DoesNotExist:
+                request.session['promocode'] = None
+                messages.error(request,
+                               "Вы ввели недействительный промокод. Попробуйте еще раз или продолжите без промокода")
+
     else:
         form = PromocodeForm()
 
-    items, total, promo = get_cart(request)
+    items, total = get_cart(request)
+    promo = check_promo(request, get_promo(request))
     for item in items:
         if item["quantity"] > item["inventory"]:
             cart = request.session["cart"]
@@ -125,7 +145,7 @@ def checkout(request):
             messages.error(request, f"Количество товара {item['name']} было скорректировано")
             return redirect("checkout")
 
-    return render(request, "checkout.html", {"items": items, "total": total, "form": form})
+    return render(request, "checkout.html", {"items": items, "total": total, "form": form, "promo": promo})
 
 
 def checkout_save_order(request, form_choices, address):

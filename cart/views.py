@@ -39,12 +39,12 @@ def get_cart(request):
 
 
 def get_promo(request):
-    promo = request.session.get("promocode", 1.0)
+    promo = request.session.get("promocode", None)
     return promo
 
 
 def view_cart(request):
-    items_list, total, promo = get_cart(request)
+    items_list, total = get_cart(request)
     return render(request, "cart.html", {"items": items_list, "total": total})
 
 
