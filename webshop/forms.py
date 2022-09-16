@@ -1,9 +1,6 @@
 from django import forms
 from django.forms import ModelForm
-from .models import Category, Item, Order, Address
-
-
-
+from .models import Category, Item, Order, Address, Promo
 
 
 class CategoryForm(ModelForm):
@@ -24,7 +21,7 @@ class StatusForm(ModelForm):
         fields = ['status']
 
 
-class RegisteredAddressForm(forms.ModelForm):
+class RegisteredAddressForm(ModelForm):
 
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -42,3 +39,13 @@ class PromocodeForm(forms.Form):
 class OrderAddItemForm(forms.Form):
     order = forms.ModelChoiceField(queryset=Order.objects.filter(status="process"))
     quantity = forms.IntegerField(min_value=1)
+
+
+class PromoForm(ModelForm):
+    class Meta:
+        model = Promo
+        fields = ['name', 'expire_date', 'discount']
+        help_texts = {
+            'expire_date': 'Введите дату окончания акции в формате дд-мм-гггг',
+            'discount': 'Введите скидку в %, целое число'
+        }

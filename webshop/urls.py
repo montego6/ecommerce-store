@@ -28,5 +28,7 @@ urlpatterns = [
     path("orders/edit/address/<int:pk>", views.AddressUpdateView.as_view(), name="orders-edit-address"),
     path("orders/my", views.orders_my, name="orders-my"),
     path("orders/confirm", views.orders_confirm, name="orders-confirm"),
-    path("denied", views.denied, name="denied")
+    path("denied", views.denied, name="denied"),
+    path("admin-panel", views.admin_panel, name="admin-panel"),
+    path("promo/add", views.add_promo, name="promo-add")
 ]

@@ -34,8 +34,13 @@ def get_cart(request):
         item["inventory"] = db_item.quantity
         total += item["value"]
         items_list.append(item)
-    promo = request.session.get("promocode", False)
-    return items_list, total, promo
+
+    return items_list, total
+
+
+def get_promo(request):
+    promo = request.session.get("promocode", 1.0)
+    return promo
 
 
 def view_cart(request):

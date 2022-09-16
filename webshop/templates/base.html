@@ -46,6 +46,9 @@
             </li>
             {% if request.user|has_group:"moderators" %}
             <li class="nav-item">
+              <a class="nav-link active" aria-current="page" href="{% url 'admin-panel' %}">Админ</a>
+            </li>
+            <li class="nav-item">
               <a class="nav-link active" aria-current="page" href="{% url 'orders-manage' 'all' %}">Менеджер заказов</a>
             </li>
             {% endif %}

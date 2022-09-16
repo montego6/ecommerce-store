@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.core.validators import MaxValueValidator
 
 # Create your models here.
 
@@ -79,3 +80,16 @@ class Order(models.Model):
 
     def __str__(self):
         return f"{self.id}"
+
+
+class Promo(models.Model):
+    name = models.CharField(max_length=30)
+    expire_date = models.DateField()
+    discount = models.PositiveIntegerField(default=1, validators=[MaxValueValidator(100)])
+
+    @property
+    def discount_price(self):
+        return (100 - self.discount) / 100
+
+    def __str__(self):
+        return f"{self.name} - {self.expire_date}"

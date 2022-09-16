@@ -3,9 +3,9 @@ from django.urls import reverse, reverse_lazy
 from django.contrib import messages
 from django.views.generic.edit import UpdateView, DeleteView
 from django.forms import modelform_factory, modelformset_factory
-from .forms import CategoryForm, ItemForm, StatusForm, RegisteredAddressForm, PromocodeForm, OrderAddItemForm
+from .forms import CategoryForm, ItemForm, StatusForm, RegisteredAddressForm, PromocodeForm, OrderAddItemForm, PromoForm
 from .models import Category, Item, Address, Order, OrderItem
-from cart.views import get_cart
+from cart.views import get_cart, get_promo
 from django.contrib.auth.decorators import user_passes_test
 from django.core import mail
 from django.template.loader import render_to_string
@@ -129,7 +129,8 @@ def checkout(request):
 
 
 def checkout_save_order(request, form_choices, address):
-    items, total, promo = get_cart(request)
+    items, total = get_cart(request)
+    promo = get_promo(request)
     order = form_choices.save(commit=False)
     order.address = address
     if promo:
@@ -143,7 +144,8 @@ def checkout_save_order(request, form_choices, address):
 
 
 def checkout_old_address(request):
-    items, total, promo = get_cart(request)
+    items, total = get_cart(request)
+
     if request.method == "POST":
         form_address = RegisteredAddressForm(request.POST, user=request.user)
         if form_address.is_valid():
@@ -169,7 +171,7 @@ def checkout_old_address(request):
 
 
 def checkout_new_address(request):
-    items, total, promo = get_cart(request)
+    items, total = get_cart(request)
 
     if request.method == "POST":
         form_address = modelform_factory(Address, exclude=["user"])(request.POST)
@@ -198,55 +200,8 @@ def checkout_new_address(request):
                                                      "address": 'new'})
 
 
-def checkout_address(request, address_status):
-    items, total, promo = get_cart(request)
-
-    if request.method == "POST":
-        if address_status == "old":
-            form_address = RegisteredAddressForm(request.POST, user=request.user)
-            if form_address.is_valid():
-                address = form_address.cleaned_data["address"]
-        elif address_status == "new":
-            form_address = modelform_factory(Address, exclude=["user"])(request.POST)
-            if form_address.is_valid():
-                address = form_address.save(commit=False)
-                if request.user.is_authenticated:
-                    address.user = request.user
-                address.save()
-
-        form_choices = modelform_factory(Order, fields=["delivery", "payment"])(request.POST)
-        order = form_choices.save(commit=False)
-        order.address = address
-        if promo:
-            order.promo = 0.8
-            total *= 0.8
-        order.total = total
-        if request.user.is_authenticated:
-            order.user = request.user
-        order.save()
-        order_manage_items(request, order)
-        request.session["cart"] = {}
-        request.session["promocode"] = False
-        send_confirmation_mail(order)
-        messages.success(request, f"Заказ #{order.id} успешно создан. Дождитесь звонка оператора для подтверждения заказа")
-        return redirect("orders-confirm")
-    else:
-        if address_status == "old":
-            form_address = RegisteredAddressForm(user=request.user)
-        elif address_status == "new":
-            form_address = modelform_factory(Address, exclude=["user"])
-        else:
-            raise Http404
-        form_choices = modelform_factory(Order, fields=["delivery", "payment"])
-
-    return render(request, "checkout-address.html", {"items": items, "total": total,
-                                                     "form1": form_address,
-                                                     "form2": form_choices,
-                                                     "address": address_status})
-
-
 def order_manage_items(request, order):
-    items, total, promo = get_cart(request)
+    items, total = get_cart(request)
     for item in items:
         db_item = Item.objects.get(id=item["id"])
         order_item, created = OrderItem.objects.get_or_create(item=db_item, quantity=item["quantity"])
@@ -372,6 +327,21 @@ def category_modify(request):
     else:
         form = modelformset_factory(Category, fields=["name", "slug"])
     return render(request, "form.html", {"form": form})
+
+
+def admin_panel(request):
+    return render(request, "admin.html")
+
+
+def add_promo(request):
+    if request.method == 'POST':
+        form = PromoForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('admin-panel')
+    else:
+        form = PromoForm()
+    return render(request, 'form.html', {"form": form, "title": "Добавить промокод"})
 
 
 
