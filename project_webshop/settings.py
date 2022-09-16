@@ -42,12 +42,14 @@ INSTALLED_APPS = [
     'webshop',
     'cart',
     'accounts',
-    'crispy_forms'
+    'crispy_forms',
+    'debug_toolbar'
 ]
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 MIDDLEWARE = [
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -55,6 +57,10 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+
+INTERNAL_IPS = [
+        "127.0.0.1",
 ]
 
 ROOT_URLCONF = 'project_webshop.urls'
@@ -67,6 +73,7 @@ TEMPLATES = [
         'OPTIONS': {
             'context_processors': [
                 'webshop.funcs.categories',
+                'webshop.funcs.moderator',
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',

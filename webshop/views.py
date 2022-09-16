@@ -100,6 +100,7 @@ def checkout(request):
                 db_promo = Promo.objects.get(name=promocode)
                 if db_promo.expire_date > date.today():
                     request.session['promocode'] = db_promo.name
+                    return redirect('checkout')
                 else:
                     messages.error(request, "Промокод устарел. Попробуйте другой или продолжите без промокода")
             except Promo.DoesNotExist:
@@ -181,18 +182,19 @@ def checkout_new_address(request):
 
 @user_passes_test(lambda user: user.groups.filter(name="moderators").exists(), login_url=reverse_lazy("denied"))
 def orders_manage(request, sorting):
+    optimized_orders = Order.objects.select_related('address').prefetch_related('items').prefetch_related('items__item')
     if sorting == "all":
-        orders = Order.objects.order_by("-id")
+        orders = optimized_orders.order_by("-id")
     elif sorting == "process":
-        orders = Order.objects.filter(status="process").order_by("-id")
+        orders = optimized_orders.filter(status="process").order_by("-id")
     elif sorting == "confirmed":
-        orders = Order.objects.filter(status="confirmed").order_by("-id")
+        orders = optimized_orders.filter(status="confirmed").order_by("-id")
     elif sorting == "delivery":
-        orders = Order.objects.filter(status="delivery").order_by("-id")
+        orders = optimized_orders.filter(status="delivery").order_by("-id")
     elif sorting == "finished":
-        orders = Order.objects.filter(status="finished").order_by("-id")
+        orders = optimized_orders.filter(status="finished").order_by("-id")
     elif sorting == "last":
-        orders = Order.objects.order_by("-id")[:10]
+        orders = optimized_orders.order_by("-id")[:10]
     else:
         raise Http404
     form = StatusForm()
@@ -211,10 +213,13 @@ def orders_change(request, order_id):
 
 def orders_delete(request, order_id):
     order = Order.objects.get(id=order_id)
-    for item in order.items.all():
-        item.item.quantity += item.quantity
-        item.item.orders -= 1
-        item.item.save()
+    order_items = order.items.all().select_related('item')
+    items_list = [item.item for item in order_items]
+    quantity_list = [item.quantity for item in order_items]
+    for item, quantity in zip(items_list, quantity_list):
+        item.quantity += quantity
+        item.orders -= 1
+    Item.objects.bulk_update(items_list, ['quantity', 'orders'])
     order.delete()
     if request.user.groups.filter(name="moderators").exists():
         return redirect("orders-manage", sorting="all")
@@ -265,7 +270,8 @@ class AddressUpdateView(UpdateView):
 
 
 def orders_my(request):
-    orders = Order.objects.filter(user=request.user)
+    orders = Order.objects.select_related('address').prefetch_related('items').\
+        prefetch_related('items__item').filter(user=request.user)
     return render(request, "orders_my.html", {"orders": orders})
 
 

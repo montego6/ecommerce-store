@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% load is_moderator %}
 
 {% block title %}
 {{ item.name }}
@@ -16,7 +15,7 @@
 {% else %}
 <a  class="btn btn-primary disabled" aria-disabled="true">В корзину</a>
 {% endif %}
-{% if request.user|has_group:"moderators" %}
+{% if moderator %}
 <a href="{% url "item-edit" item.id %}" class="btn btn-success">Изменить</a>
 <a href="{% url "item-delete" item.id %}" class="btn btn-danger">Удалить</a>
 {% if item.quantity > 0 %}

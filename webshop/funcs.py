@@ -15,6 +15,12 @@ def categories(request):
     }
 
 
+def moderator(request):
+    return {
+        "moderator": request.user.groups.filter(name="moderators").exists()
+    }
+
+
 def check_promo(promocode):
     return Promo.objects.get(name=promocode) if promocode else None
 

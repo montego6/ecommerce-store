@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load is_moderator %}
+
 
 {% block title %}
 {{ category.name }}
@@ -31,7 +31,7 @@
 {% include "card-item.html" %}
   </div>
 {% endfor %}
-{% if request.user|has_group:"moderators" %}
+{% if moderator %}
   <div class="col">
 {% include "card-add.html" %}
   </div>

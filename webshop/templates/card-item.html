@@ -1,4 +1,3 @@
-{% load is_moderator %}
 <div class="card h-100" style="width: 16rem;">
   <img src="{{ item.image.url }}" class="card-img-top" alt="...">
   <div class="card-body">
@@ -14,7 +13,7 @@
     <a href="{% url 'item' item.id %}" class="btn btn-primary">Подробнее</a>
     <a href="{% url 'cart:add-to-cart' item.id %}" class="btn btn-primary">В корзину</a>
     {% else %}
-    {% if request.user|has_group:"moderators" %}
+    {% if moderator %}
     <a href="{% url 'item' item.id %}" class="btn btn-primary">Подробнее</a>
     <a  class="btn btn-primary disabled" aria-disabled="true">В корзину</a>
     {% else %}

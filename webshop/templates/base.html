@@ -1,4 +1,4 @@
-{% load is_moderator %}
+<!--{% load is_moderator %}-->
 
 
 <!DOCTYPE html>
@@ -24,7 +24,7 @@
             {% for category in categories %}
             <li><a class="dropdown-item" href="{% url 'category' category.slug 'popular' %}">{{ category.name }}</a></li>
             {% endfor %}
-              {% if request.user|has_group:"moderators" %}
+              {% if moderator %}
             <li><hr class="dropdown-divider"></li>
             <li><a class="dropdown-item" href="{% url 'add-category' %}">Добавить категорию</a></li>
               <li><a class="dropdown-item" href="{% url 'category-modify' %}">Изменить категории</a></li>
@@ -45,7 +45,7 @@
             <li class="nav-item">
                 <a class="nav-link active" aria-current="page" href="{% url 'cart:view-cart' %}">В корзине: {{ cart_length }} позиции</a>
             </li>
-            {% if request.user|has_group:"moderators" %}
+            {% if moderator %}
             <li class="nav-item">
               <a class="nav-link active" aria-current="page" href="{% url 'orders-manage' 'all' %}">Менеджер заказов</a>
             </li>

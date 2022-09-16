@@ -5,9 +5,10 @@ def get_cart(request):
     cart = request.session.get('cart', {})
     items_list = []
     total = 0
-    for item_id, item_quantity in cart.items():
+    db_items = Item.objects.filter(id__in=cart)
+    quantities = [cart[str(db_item.id)] for db_item in db_items]
+    for db_item, item_quantity in zip(db_items, quantities):
         item = {}
-        db_item = Item.objects.get(pk=item_id)
         item["id"] = db_item.id
         item["name"] = db_item.name
         item["quantity"] = item_quantity
