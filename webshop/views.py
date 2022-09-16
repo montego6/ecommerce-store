@@ -4,28 +4,14 @@ from django.contrib import messages
 from django.views.generic.edit import UpdateView, DeleteView
 from django.forms import modelform_factory, modelformset_factory
 from .forms import CategoryForm, ItemForm, StatusForm, RegisteredAddressForm, PromocodeForm, OrderAddItemForm, PromoForm
+from .funcs import check_promo, checkout_save_order, order_manage_items, send_confirmation_mail
 from .models import Category, Item, Address, Order, OrderItem, Promo
-from cart.views import get_cart, get_promo
+from cart.funcs import get_cart, get_promo, clear_cart
 from django.contrib.auth.decorators import user_passes_test
-from django.core import mail
-from django.template.loader import render_to_string
-from django.utils.html import strip_tags
-from django.conf import settings
 from datetime import date
 
 
 # Create your views here.
-
-PROMO = ["SHOP", "KIRILL", "PROMO"]
-
-
-def categories(request):
-    categories_list = Category.objects.all()
-    cart_length = len(request.session.get('cart', {}))
-    return {
-        "categories": categories_list,
-        "cart_length": cart_length
-    }
 
 
 def index(request):
@@ -104,31 +90,19 @@ def search(request):
     return render(request, "search.html", {"items": items})
 
 
-def check_promo(request, promocode):
-    try:
-        db_promo = Promo.objects.get(name=promocode)
-        if db_promo.expire_date > date.today():
-            request.session['promocode'] = db_promo.name
-            return db_promo
-    except Promo.DoesNotExist:
-        pass
-    return None
-
-
 def checkout(request):
     if request.method == "POST":
         form = PromocodeForm(request.POST)
         if form.is_valid():
             promocode = form.cleaned_data["promocode"]
             try:
+                request.session['promocode'] = None
                 db_promo = Promo.objects.get(name=promocode)
                 if db_promo.expire_date > date.today():
                     request.session['promocode'] = db_promo.name
                 else:
-                    request.session['promocode'] = None
                     messages.error(request, "Промокод устарел. Попробуйте другой или продолжите без промокода")
             except Promo.DoesNotExist:
-                request.session['promocode'] = None
                 messages.error(request,
                                "Вы ввели недействительный промокод. Попробуйте еще раз или продолжите без промокода")
 
@@ -136,7 +110,7 @@ def checkout(request):
         form = PromocodeForm()
 
     items, total = get_cart(request)
-    promo = check_promo(request, get_promo(request))
+    promo = check_promo(get_promo(request))
     for item in items:
         if item["quantity"] > item["inventory"]:
             cart = request.session["cart"]
@@ -148,23 +122,9 @@ def checkout(request):
     return render(request, "checkout.html", {"items": items, "total": total, "form": form, "promo": promo})
 
 
-def checkout_save_order(request, form_choices, address):
-    items, total = get_cart(request)
-    promo = get_promo(request)
-    order = form_choices.save(commit=False)
-    order.address = address
-    if promo:
-        order.promo = 0.8
-        total *= 0.8
-    order.total = total
-    if request.user.is_authenticated:
-        order.user = request.user
-    order.save()
-    return order
-
-
 def checkout_old_address(request):
     items, total = get_cart(request)
+    promo = check_promo(get_promo(request))
 
     if request.method == "POST":
         form_address = RegisteredAddressForm(request.POST, user=request.user)
@@ -173,8 +133,7 @@ def checkout_old_address(request):
         form_choices = modelform_factory(Order, fields=["delivery", "payment"])(request.POST)
         order = checkout_save_order(request, form_choices, address)
         order_manage_items(request, order)
-        request.session["cart"] = {}
-        request.session["promocode"] = False
+        clear_cart(request)
         send_confirmation_mail(order)
         messages.success(request,
                          f"Заказ #{order.id} успешно создан. Дождитесь звонка оператора для подтверждения заказа")
@@ -184,7 +143,7 @@ def checkout_old_address(request):
         form_address = RegisteredAddressForm(user=request.user)
         form_choices = modelform_factory(Order, fields=["delivery", "payment"])
 
-    return render(request, "checkout-address.html", {"items": items, "total": total,
+    return render(request, "checkout-address.html", {"items": items, "total": total, "promo": promo,
                                                      "form1": form_address,
                                                      "form2": form_choices,
                                                      "address": 'old'})
@@ -192,6 +151,7 @@ def checkout_old_address(request):
 
 def checkout_new_address(request):
     items, total = get_cart(request)
+    promo = check_promo(get_promo(request))
 
     if request.method == "POST":
         form_address = modelform_factory(Address, exclude=["user"])(request.POST)
@@ -203,8 +163,7 @@ def checkout_new_address(request):
         form_choices = modelform_factory(Order, fields=["delivery", "payment"])(request.POST)
         order = checkout_save_order(request, form_choices, address)
         order_manage_items(request, order)
-        request.session["cart"] = {}
-        request.session["promocode"] = False
+        clear_cart(request)
         send_confirmation_mail(order)
         messages.success(request,
                          f"Заказ #{order.id} успешно создан. Дождитесь звонка оператора для подтверждения заказа")
@@ -214,21 +173,10 @@ def checkout_new_address(request):
         form_address = modelform_factory(Address, exclude=["user"])
         form_choices = modelform_factory(Order, fields=["delivery", "payment"])
 
-    return render(request, "checkout-address.html", {"items": items, "total": total,
+    return render(request, "checkout-address.html", {"items": items, "total": total, "promo": promo,
                                                      "form1": form_address,
                                                      "form2": form_choices,
                                                      "address": 'new'})
-
-
-def order_manage_items(request, order):
-    items, total = get_cart(request)
-    for item in items:
-        db_item = Item.objects.get(id=item["id"])
-        order_item, created = OrderItem.objects.get_or_create(item=db_item, quantity=item["quantity"])
-        order.items.add(order_item)
-        db_item.quantity -= item["quantity"]
-        db_item.orders += 1
-        db_item.save()
 
 
 @user_passes_test(lambda user: user.groups.filter(name="moderators").exists(), login_url=reverse_lazy("denied"))
@@ -327,16 +275,6 @@ def orders_confirm(request):
 
 def denied(request):
     return render(request, "denied.html")
-
-
-def send_confirmation_mail(order):
-    subject = f'Вы сделали заказ #{order.id} в магазине Webshop'
-    html_message = render_to_string('webshop/mail_order.html', {'order': order})
-    plain_message = strip_tags(html_message)
-    from_email = settings.EMAIL_HOST_USER
-    to_email = order.address.email
-
-    mail.send_mail(subject, plain_message, from_email, [to_email], html_message=html_message)
 
 
 def category_modify(request):

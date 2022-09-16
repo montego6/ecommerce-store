@@ -1,11 +1,26 @@
+{% load is_moderator %}
 <div class="card h-100" style="width: 16rem;">
   <img src="{{ item.image.url }}" class="card-img-top" alt="...">
   <div class="card-body">
     <h5 class="card-title">{{ item.name }}</h5>
     <p class="card-text">{{ item.title }}</p>
     <span>Цена: {{ item.price|floatformat:-2 }} руб.</span>
+    {% if item.quantity == 0 %}
     <br>
+    <small>Товара нет в наличии</small>
+    {% endif %}
+    <br>
+    {% if item.quantity > 0 %}
     <a href="{% url 'item' item.id %}" class="btn btn-primary">Подробнее</a>
     <a href="{% url 'cart:add-to-cart' item.id %}" class="btn btn-primary">В корзину</a>
+    {% else %}
+    {% if request.user|has_group:"moderators" %}
+    <a href="{% url 'item' item.id %}" class="btn btn-primary">Подробнее</a>
+    <a  class="btn btn-primary disabled" aria-disabled="true">В корзину</a>
+    {% else %}
+    <a  class="btn btn-primary disabled" aria-disabled="true">Подробнее</a>
+    <a  class="btn btn-primary disabled" aria-disabled="true">В корзину</a>
+    {% endif %}
+    {% endif %}
   </div>
 </div>

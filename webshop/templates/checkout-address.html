@@ -22,10 +22,10 @@
       <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
         {{ items|length }} позиций на общую сумму
           &nbsp;&nbsp;
-          {% if request.session.promocode %}
+          {% if promo %}
           <s>{{ total|floatformat:-2 }}</s>
           &nbsp;
-          {{ total|multiply:0.8|floatformat:-2 }} руб. с учетом 20%-ой скидки
+          {{ total|multiply:promo.discount_price|floatformat:-2 }} руб. с учетом {{ promo.discount }}%-ой скидки
           {% else %}
           {{ total|floatformat:-2 }} руб.
           {% endif %}

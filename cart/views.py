@@ -1,5 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
+
+from cart.funcs import get_cart
 from webshop.models import Item
 
 # Create your views here.
@@ -17,30 +19,6 @@ def add_to_cart(request, item_id):
         cart[str(item_id)] = 1
     request.session['cart'] = cart
     return redirect('cart:view-cart')
-
-
-def get_cart(request):
-    cart = request.session.get('cart', {})
-    items_list = []
-    total = 0
-    for item_id, item_quantity in cart.items():
-        item = {}
-        db_item = Item.objects.get(pk=item_id)
-        item["id"] = db_item.id
-        item["name"] = db_item.name
-        item["quantity"] = item_quantity
-        item["price"] = db_item.price
-        item["value"] = item["price"] * item["quantity"]
-        item["inventory"] = db_item.quantity
-        total += item["value"]
-        items_list.append(item)
-
-    return items_list, total
-
-
-def get_promo(request):
-    promo = request.session.get("promocode", None)
-    return promo
 
 
 def view_cart(request):

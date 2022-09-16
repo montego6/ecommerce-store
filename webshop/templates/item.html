@@ -11,11 +11,17 @@
 <p>{{ item.description }}</p>
 <span>На складе: {{ item.quantity }}</span>
 <h4>Цена: {{ item.price|floatformat:-2 }} руб.</h4>
+{% if item.quantity > 0 %}
 <a href="{% url 'cart:add-to-cart' item.id %}" class="btn btn-primary">В корзину</a>
+{% else %}
+<a  class="btn btn-primary disabled" aria-disabled="true">В корзину</a>
+{% endif %}
 {% if request.user|has_group:"moderators" %}
 <a href="{% url "item-edit" item.id %}" class="btn btn-success">Изменить</a>
 <a href="{% url "item-delete" item.id %}" class="btn btn-danger">Удалить</a>
+{% if item.quantity > 0 %}
 <a href="{% url "orders-item-add" item.id %}" class="btn btn-danger">Добавить в заказ</a>
+{% endif %}
 {% endif %}
 
 {% endblock %}
