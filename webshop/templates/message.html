@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+Сообщение
+{% endblock %}
+
+{% block content %}
+<h2>Сообщение</h2>
+{% if messages %}
+{% for message in messages %}
+<div class="alert alert-success" role="alert">
+{{ message }}
+    {% endfor %}
+    {% endif %}
+</div>
+{% endblock %}

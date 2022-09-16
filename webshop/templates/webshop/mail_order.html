@@ -1,0 +1,13 @@
+<p>Уважаемый {{ order.address.name }}, вы только сделали заказ #{{ order.id }} в нашем интернет-магазине. Дождитесь звонка оператора для подтверждения заказа. Ваш заказ:</p>
+<table class="table">
+{% for item in order.items.all %}
+    <tr>
+        <td><a href="http://127.0.0.1:8000{% url 'item' item.item.id %}">{{ item.item.name }}</a></td>
+        <td>x{{ item.quantity }}</td>
+        <td>{{ item.item.price }} руб.</td>
+        </tr>
+{% endfor %}
+    </table>
+<h3>Общая сумма заказа: {{ order.total }} руб.</h3>
+<p>Выбранная доставка - {{ order.get_delivery_display }}</p>
+<p>Выбранная оплата - {{ order.get_payment_display }}</p>

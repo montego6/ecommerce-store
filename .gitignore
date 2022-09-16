@@ -1,0 +1,14 @@
+*.log
+*.pot
+*.pyc
+__pycache__
+db.sqlite3
+media
+uploads
+*.bak
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/usage.statistics.xml
+.idea/**/dictionaries
+.idea/**/shelf
+.env

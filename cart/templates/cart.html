@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}
+Корзина
+{% endblock %}
+
+{% block content %}
+<br>
+<h1>Ваша корзина</h1>
+{% if messages %}
+{% for message in messages %}
+<div class="alert alert-warning" role="alert">
+{{ message }}
+</div>
+{% endfor %}
+{% endif %}
+<table class="table">
+    <thead>
+<tr>
+    <th scope="col">#</th>
+  <th scope="col">Название</th>
+    <th scope="col">Количество</th>
+    <th scope="col">Цена</th>
+    <th scope="col">Итого</th>
+  <th scope="col">Изменить количество</th>
+    <th scope="col"></th>
+      <th scope="col">Удалить</th>
+</tr>
+</thead>
+{% for item in items %}
+    <tr>
+        <th scope="row">{{ forloop.counter }}</th>
+<td><a href="{% url 'item' item.id %}">{{ item.name }}</a></td>
+    <td>{{ item.quantity }}</td>
+    <td>{{ item.price|floatformat:-2 }}</td>
+        <td>{{ item.value|floatformat:-2 }}</td>
+    <td>
+        <form action="{% url 'cart:cart-modify' item.id %}" method="post">
+    {% csrf_token %}
+        <input type="range" class="form-range" min="1" max="{{ item.inventory }}" value="{{ item.quantity }}" name="desired_quantity">
+    </td>
+    <td>
+        <button type="submit" class="btn btn-success">Изменить кол-во</button>
+        </form>
+    </td>
+        <td><a href="{% url 'cart:cart-delete' item.id %}">Удалить</a></td>
+    </tr>
+{% endfor %}
+</table>
+<h2>Итого стоимость вашей покупки: {{ total|floatformat:-2 }} руб.</h2>
+<a href="{% url 'checkout' %}" class="btn btn-primary btn-lg">Оформить заказ</a>
+{% endblock %}

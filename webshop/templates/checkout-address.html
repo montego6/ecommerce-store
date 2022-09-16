@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load is_moderator %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+Оформление заказа
+{% endblock %}
+
+{% block content %}
+<br>
+<h1>Оформление заказа</h1>
+{% if messages %}
+{% for message in messages %}
+<div class="alert alert-warning" role="alert">
+{{ message }}
+</div>
+{% endfor %}
+{% endif %}
+<div class="accordion" id="accordionExample">
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="headingOne">
+      <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+        {{ items|length }} позиций на общую сумму
+          &nbsp;&nbsp;
+          {% if request.session.promocode %}
+          <s>{{ total|floatformat:-2 }}</s>
+          &nbsp;
+          {{ total|multiply:0.8|floatformat:-2 }} руб. с учетом 20%-ой скидки
+          {% else %}
+          {{ total|floatformat:-2 }} руб.
+          {% endif %}
+      </button>
+    </h2>
+    <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+      <div class="accordion-body">
+      <table class="table table-borderless">
+          <tbody>
+          {% for item in items %}
+          <tr>
+          <td><a href="{% url 'item' item.id %}">{{ item.name }}</a></td>
+          <td>{{ item.price|floatformat:-2 }} руб</td>
+    <td>x{{ item.quantity }}</td>
+              {% endfor %}
+          </tr>
+          </tbody>
+      </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form1|crispy }}
+    {{ form2|crispy }}
+    <br>
+    <button type="submit" class="btn btn-success">Оформить заказ</button>
+  </form>
+{% if address == "old" %}<a href="{% url 'checkout-address' 'new' %}" class="btn btn-primary">Указать другой адрес</a>{% endif %}
+{% endblock %}

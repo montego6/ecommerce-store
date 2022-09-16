@@ -1,0 +1,82 @@
+{% load is_moderator %}
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
+
+</head>
+<nav class="navbar navbar-expand-lg bg-light">
+  <div class="container-xl">
+    <a class="navbar-brand" href="#">Webshop</a>
+
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+
+         <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Категории
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+            {% for category in categories %}
+            <li><a class="dropdown-item" href="{% url 'category' category.slug 'popular' %}">{{ category.name }}</a></li>
+            {% endfor %}
+              {% if request.user|has_group:"moderators" %}
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="{% url 'add-category' %}">Добавить категорию</a></li>
+              <li><a class="dropdown-item" href="{% url 'category-modify' %}">Изменить категории</a></li>
+              {% endif %}
+          </ul>
+          <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="{% url 'home' %}">О магазине</a>
+        </li>
+
+      </ul>
+      <form class="d-flex" role="search" action="{% url 'search' %}" method="post">
+          {% csrf_token %}
+        <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" name="search_input">
+        <button class="btn btn-outline-success" type="submit">Search</button>
+      </form>
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <li class="nav-item">
+                <a class="nav-link active" aria-current="page" href="{% url 'cart:view-cart' %}">В корзине: {{ cart_length }} позиции</a>
+            </li>
+            {% if request.user|has_group:"moderators" %}
+            <li class="nav-item">
+              <a class="nav-link active" aria-current="page" href="{% url 'orders-manage' 'all' %}">Менеджер заказов</a>
+            </li>
+            {% endif %}
+            {% if user.is_authenticated %}
+            <li class="nav-item">
+              <a class="nav-link active" aria-current="page" href="{% url 'orders-my' %}">Мои заказы</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link active" aria-current="page" href="{% url 'change-password' %}">Сменить пароль</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link active" aria-current="page" href="{% url "logout" %}">Выйти</a>
+            </li>
+            {% else %}
+            <li class="nav-item">
+              <a class="nav-link active" aria-current="page" href="{% url "login" %}">Войти</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link active" aria-current="page" href="{% url "signup" %}">Регистрация</a>
+            </li>
+            {% endif %}
+        </ul>
+    </div>
+  </div>
+</nav>
+
+<body>
+    <div class="container-xl">
+    {% block content %}
+    {% endblock %}
+    </div>
+ <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-pprn3073KE6tl6bjs2QrFaJGz5/SUsLqktiwsUTF55Jfv3qYSDhgCecCxMW52nD2" crossorigin="anonymous"></script>
+</body>
+</html>

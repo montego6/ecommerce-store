@@ -1,0 +1,11 @@
+<div class="card h-100" style="width: 16rem;">
+  <img src="{{ item.image.url }}" class="card-img-top" alt="...">
+  <div class="card-body">
+    <h5 class="card-title">{{ item.name }}</h5>
+    <p class="card-text">{{ item.title }}</p>
+    <span>Цена: {{ item.price|floatformat:-2 }} руб.</span>
+    <br>
+    <a href="{% url 'item' item.id %}" class="btn btn-primary">Подробнее</a>
+    <a href="{% url 'cart:add-to-cart' item.id %}" class="btn btn-primary">В корзину</a>
+  </div>
+</div>

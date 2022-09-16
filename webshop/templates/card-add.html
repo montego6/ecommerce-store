@@ -1,0 +1,10 @@
+{% load static %}
+
+<div class="card h-100" style="width: 16rem;">
+  <img src="{% static 'images/plus.jpg' %}" class="card-img-top" alt="...">
+  <div class="card-body">
+    <h5 class="card-title">Добавить позицию</h5>
+    <p class="card-text">Добавьте милых животных для расширения ассортимента нашего магазина</p>
+    <a href="{% url 'add-item' %}" class="btn btn-primary">Добавить</a>
+  </div>
+</div>

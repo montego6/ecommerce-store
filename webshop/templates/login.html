@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+Вход пользователя в личный кабинет
+{% endblock %}
+
+{% block content %}
+<h2>Войдите в личный кабинет</h2>
+{% for message in messages %}
+<div class="alert alert-warning" role="alert">
+{{ message }}
+</div>
+{% endfor %}
+  <form method="post">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <br>
+    <button type="submit" class="btn btn-success">Войти</button>
+  </form>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load is_moderator %}
+
+{% block title %}
+{{ category.name }}
+{% endblock %}
+
+{% block content %}
+<h1>{{ category.name }}</h1>
+<ul class="nav">
+  <li class="nav-item">
+    <span class="nav-link disabled" >Сортировка: </span>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="{% url 'category' category.slug 'popular' %}">Популярные</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="{% url 'category' category.slug 'name' %}">Название</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="{% url 'category' category.slug 'price-lowest' %}">Цена(возр.)</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="{% url 'category' category.slug 'price-highest' %}">Цена(убыв.)</a>
+  </li>
+</ul>
+<br>
+<div class="row row-cols-1 row-cols-md-3 g-4">
+{% for item in items %}
+  <div class="col">
+{% include "card-item.html" %}
+  </div>
+{% endfor %}
+{% if request.user|has_group:"moderators" %}
+  <div class="col">
+{% include "card-add.html" %}
+  </div>
+{% endif %}
+</div>
+{% endblock %}

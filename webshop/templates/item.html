@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load is_moderator %}
+
+{% block title %}
+{{ item.name }}
+{% endblock %}
+
+{% block content %}
+<h2>{{ item.name }}</h2>
+<img src="{{ item.image.url }}" width="300">
+<p>{{ item.description }}</p>
+<span>На складе: {{ item.quantity }}</span>
+<h4>Цена: {{ item.price|floatformat:-2 }} руб.</h4>
+<a href="{% url 'cart:add-to-cart' item.id %}" class="btn btn-primary">В корзину</a>
+{% if request.user|has_group:"moderators" %}
+<a href="{% url "item-edit" item.id %}" class="btn btn-success">Изменить</a>
+<a href="{% url "item-delete" item.id %}" class="btn btn-danger">Удалить</a>
+<a href="{% url "orders-item-add" item.id %}" class="btn btn-danger">Добавить в заказ</a>
+{% endif %}
+
+{% endblock %}

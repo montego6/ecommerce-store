@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}
+Главная
+{% endblock %}
+
+{% block content %}
+<h1>Главная</h1>
+<h3>Наши самые популярные товары:</h3>
+<div class="row row-cols-1 row-cols-md-3 g-4">
+{% for item in popular %}
+  <div class="col">
+{% include "card-item.html" %}
+  </div>
+{% endfor %}
+</div>
+<h3>Успейте купить:</h3>
+<div class="row row-cols-1 row-cols-md-3 g-4">
+{% for item in last %}
+  <div class="col">
+{% include "card-item.html" %}
+  </div>
+{% endfor %}
+    </div>
+{% endblock %}

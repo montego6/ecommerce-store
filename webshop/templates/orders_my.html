@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+Мои заказы
+{% endblock %}
+
+{% block content %}
+<h2>Мои заказы</h2>
+{% if not orders %}
+<div class="alert alert-success" role="alert">
+  У вас пока нет заказов. Поспешите и сделайте один!
+</div>
+{% endif %}
+<div class="accordion" id="accordionExample">
+{% for order in orders %}
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="heading{{ forloop.counter }}">
+      <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ forloop.counter }}" aria-expanded="true" aria-controls="collapse{{ forloop.counter }}">
+        Заказ #{{ order.id }} на сумму {{ order.total }} руб: {{ order.get_status_display }}
+      </button>
+    </h2>
+    <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse" aria-labelledby="heading{{ forloop.counter }}" data-bs-parent="#accordionExample">
+      <div class="accordion-body">
+          <p>Имя: {{ order.address.name }}, телефон: {{ order.address.phone }}</p>
+          <table class="table">
+       {% for item in order.items.all %}
+              <tr>
+        <td><a href="{% url 'item' item.item.id %}">{{ item.item.name }}</a></td>
+                  <td>{{ item.quantity }}</td>
+                  <td>{{ item.item.price }} руб</td>
+                  <td><a href="{% url 'orders-item-delete' order.id item.id %}">Удалить позицию</a></td>
+              </tr>
+          {% endfor %}
+              </table>
+   <br>
+          <span>Доставка: {{ order.get_delivery_display }}</span>
+          <br>
+          <span>Оплата: {{ order.get_payment_display }}</span>
+          <br>
+        <span>Адрес: {{order.address.city}}, {{ order.address.address }}</span>
+          <br>
+          <a href="{% url 'orders-edit-address' order.address.id %}" class="btn btn-success">Изменить адрес</a>
+          <a href="{% url 'orders-delete' order.id %}" class="btn btn-danger">Отменить заказ</a>
+      </div>
+    </div>
+  </div>
+{% endfor %}
+    </div>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+Добавить позицию
+{% endblock %}
+
+{% block content %}
+<h2>Добавить позицию</h2>
+  <form enctype='multipart/form-data' method="post">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <button type="submit" class="btn btn-success">Добавить</button>
+  </form>
+{% endblock %}
