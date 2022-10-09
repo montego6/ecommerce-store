@@ -1,4 +1,4 @@
-# ecommerce-store
+# Интернет магазин
 Features:
 Возможности покупателя:
 - аутентификация: registration, login, logout, change password, reset password(with email)
